@@ -38,6 +38,7 @@ L’utente inserisce una città e l’app:
 weather-app/
 ├── backend/
 ├── frontend/
+├── LICENSE
 └── README.md
 ```
 
