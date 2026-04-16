@@ -1,8 +1,7 @@
-/* eslint-env vitest */
 import { render, screen, fireEvent } from '@testing-library/react';
-import SearchBar from '../component/SearchBar';
+import SearchBar from '../component/presentational/SearchBar';
 
-describe('SearchBar', () => {
+describe('SearchBar (Presentational)', () => {
   it('chiama onSearch con valore valido', () => {
     const onSearch = vi.fn();
     render(<SearchBar onSearch={onSearch} loading={false} />);
@@ -30,13 +29,13 @@ describe('SearchBar', () => {
   it('blocca input non valido con caratteri speciali', () => {
     const onSearch = vi.fn();
 
-    window.alert = vi.fn();
+    globalThis.alert = vi.fn();
 
     render(<SearchBar onSearch={onSearch} loading={false} />);
     fireEvent.change(screen.getByPlaceholderText('Inserisci una città...'), { target: { value: 'R0ma!' }});
     fireEvent.click(screen.getByRole('button', { name: /cerca/i }));
 
-    expect(window.alert).toHaveBeenCalledWith('Inserisci una città valida (solo lettere, spazi, trattini o apostrofi).');
+    expect(globalThis.alert).toHaveBeenCalledWith('Inserisci una città valida (solo lettere, spazi, trattini o apostrofi).');
     expect(onSearch).not.toHaveBeenCalled();
   });
 
@@ -46,3 +45,4 @@ describe('SearchBar', () => {
     expect(screen.getByRole('button')).toBeDisabled();
   });
 });
+

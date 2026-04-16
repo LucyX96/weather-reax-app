@@ -1,5 +1,4 @@
-/* eslint-env vitest */
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ErrorBoundary from '../component/ErrorBoundary';
 
 function Bomb() {
@@ -8,7 +7,7 @@ function Bomb() {
 
 describe('ErrorBoundary', () => {
   it('mostra fallback quando il figlio genera errore', () => {
-    const { rerender } = render(
+    render(
       <ErrorBoundary>
         <Bomb />
       </ErrorBoundary>

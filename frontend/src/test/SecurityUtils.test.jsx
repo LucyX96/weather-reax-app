@@ -1,4 +1,3 @@
-/* eslint-env vitest */
 import { sanitizeInput, isValidCityName, sanitizeHeaders } from '../security/SecurityUtils';
 
 describe('SecurityUtils', () => {

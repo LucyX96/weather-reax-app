@@ -13,9 +13,9 @@ async function setCache(key, data) {
   };
   try {
     const value = JSON.stringify(item);
-    if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Storage) {
+    if (globalThis.window?.Capacitor?.Plugins?.Storage) {
       // Mobile: usa Capacitor Storage
-      await window.Capacitor.Plugins.Storage.set({ key: CACHE_KEY_PREFIX + key, value });
+      await globalThis.window.Capacitor.Plugins.Storage.set({ key: CACHE_KEY_PREFIX + key, value });
     } else {
       // Web: localStorage
       localStorage.setItem(CACHE_KEY_PREFIX + key, value);
@@ -29,9 +29,9 @@ async function setCache(key, data) {
 async function getCache(key) {
   try {
     let itemStr;
-    if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Storage) {
+    if (globalThis.window?.Capacitor?.Plugins?.Storage) {
       // Mobile
-      const { value } = await window.Capacitor.Plugins.Storage.get({ key: CACHE_KEY_PREFIX + key });
+      const { value } = await globalThis.window.Capacitor.Plugins.Storage.get({ key: CACHE_KEY_PREFIX + key });
       itemStr = value;
     } else {
       // Web
@@ -54,8 +54,8 @@ async function getCache(key) {
 // Funzione per rimuovere dalla cache
 async function removeCache(key) {
   try {
-    if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Storage) {
-      await window.Capacitor.Plugins.Storage.remove({ key: CACHE_KEY_PREFIX + key });
+    if (globalThis.window?.Capacitor?.Plugins?.Storage) {
+      await globalThis.window.Capacitor.Plugins.Storage.remove({ key: CACHE_KEY_PREFIX + key });
     } else {
       localStorage.removeItem(CACHE_KEY_PREFIX + key);
     }

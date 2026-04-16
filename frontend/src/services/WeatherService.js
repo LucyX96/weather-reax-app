@@ -3,7 +3,7 @@ import { sanitizeInput, isValidCityName } from '../security/SecurityUtils';
 import { ENDPOINTS } from '../models/weather';
 
 function validateCoords(value) {
-  return !Number.isNaN(parseFloat(value)) && Number.isFinite(parseFloat(value));
+  return !Number.isNaN(Number.parseFloat(value)) && Number.isFinite(Number.parseFloat(value));
 }
 
 export async function geocodeCity(city) {

@@ -1,10 +1,77 @@
 import { useState, useCallback } from 'react';
 import { saveCache, readCache } from '../services/CacheService';
-import { geocodeCity, getCurrentWeather, getFiveDayForecast, getMultipleCitiesWeather } from '../services/WeatherService';
+import { geocodeCity, getCurrentWeather, getFiveDayForecast, getMultipleCitiesWeather } from '../services/weatherApiService';
 import { isValidCityName, sanitizeInput } from '../security/SecurityUtils';
 
 function isOnline() {
   return navigator.onLine;
+}
+
+// Helper to get cached or fetch geocode data
+async function getGeocodeData(sanitizedCity) {
+  const geocodeKey = `geocode_${sanitizedCity.toLowerCase()}`;
+  let geoData = await readCache(geocodeKey);
+
+  if (!geoData) {
+    if (!isOnline()) {
+      throw new Error('Offline: dati geocoding non disponibili in cache.');
+    }
+    const geocodeResult = await geocodeCity(sanitizedCity);
+    geoData = geocodeResult.toObject();
+    await saveCache(geocodeKey, geoData);
+  }
+
+  return geoData;
+}
+
+// Helper to get cached or fetch weather data
+async function getWeatherData(latitude, longitude) {
+  const weatherKey = `weather_${latitude}_${longitude}`;
+  let weatherData = await readCache(weatherKey);
+
+  if (!weatherData) {
+    if (!isOnline()) {
+      throw new Error('Offline: dati meteo non disponibili in cache.');
+    }
+    const weatherResult = await getCurrentWeather(latitude, longitude);
+    weatherData = weatherResult.toObject();
+    await saveCache(weatherKey, weatherData);
+  }
+
+  return weatherData;
+}
+
+// Helper to get cached or fetch forecast data
+async function getForecastData(latitude, longitude) {
+  const forecastKey = `forecast_${latitude}_${longitude}`;
+  let forecastData = await readCache(forecastKey);
+  if (!forecastData && isOnline()) {
+    forecastData = await getFiveDayForecast(latitude, longitude);
+    await saveCache(forecastKey, forecastData);
+  }
+  return forecastData;
+}
+
+// Helper to try recovering from offline error with cache
+async function tryOfflineRecovery(sanitizedCity) {
+  const geocodeKey = `geocode_${sanitizedCity.toLowerCase()}`;
+  const cachedPlace = await readCache(geocodeKey);
+  
+  if (!cachedPlace) {
+    return null;
+  }
+
+  const weatherKey = `weather_${cachedPlace.latitude}_${cachedPlace.longitude}`;
+  const cachedWeather = await readCache(weatherKey);
+  
+  if (!cachedWeather) {
+    return null;
+  }
+
+  const forecastKey = `forecast_${cachedPlace.latitude}${cachedPlace.longitude}`;
+  const cachedForecast = await readCache(forecastKey);
+
+  return { place: cachedPlace, weather: cachedWeather, forecast: cachedForecast };
 }
 
 function useWeather() {
@@ -28,38 +95,13 @@ function useWeather() {
         throw new Error('Inserisci una città valida.');
       }
 
-      const geocodeKey = `geocode_${sanitizedCity.toLowerCase()}`;
-      let geoData = await readCache(geocodeKey);
-
-      if (!geoData) {
-        if (!isOnline()) {
-          throw new Error('Offline: dati geocoding non disponibili in cache.');
-        }
-        geoData = await geocodeCity(sanitizedCity);
-        await saveCache(geocodeKey, geoData);
-      }
-
+      const geoData = await getGeocodeData(sanitizedCity);
       setPlace(geoData);
 
-      const weatherKey = `weather_${geoData.latitude}_${geoData.longitude}`;
-      let weatherData = await readCache(weatherKey);
-
-      if (!weatherData) {
-        if (!isOnline()) {
-          throw new Error('Offline: dati meteo non disponibili in cache.');
-        }
-        weatherData = await getCurrentWeather(geoData.latitude, geoData.longitude);
-        await saveCache(weatherKey, weatherData);
-      }
-
+      const weatherData = await getWeatherData(geoData.latitude, geoData.longitude);
       setWeather(weatherData);
 
-      const forecastKey = `forecast_${geoData.latitude}_${geoData.longitude}`;
-      let forecastData = await readCache(forecastKey);
-      if (!forecastData && isOnline()) {
-        forecastData = await getFiveDayForecast(geoData.latitude, geoData.longitude);
-        await saveCache(forecastKey, forecastData);
-      }
+      const forecastData = await getForecastData(geoData.latitude, geoData.longitude);
       setFiveDayForecast(forecastData);
 
       if (!isOnline()) {
@@ -68,20 +110,14 @@ function useWeather() {
     } catch (err) {
       if (!isOnline()) {
         const sanitizedCity = sanitizeInput(city);
-        const geocodeKey = `geocode_${sanitizedCity.toLowerCase()}`;
-        const cachedPlace = await readCache(geocodeKey);
-        if (cachedPlace) {
-          setPlace(cachedPlace);
-          const weatherKey = `weather_${cachedPlace.latitude}_${cachedPlace.longitude}`;
-          const cachedWeather = await readCache(weatherKey);
-          if (cachedWeather) {
-            setWeather(cachedWeather);
-            const forecastKey = `forecast_${cachedPlace.latitude}_${cachedPlace.longitude}`;
-            setFiveDayForecast(await readCache(forecastKey));
-            setError('Modalità offline: dati dalla cache.');
-            setLoading(false);
-            return;
-          }
+        const recovered = await tryOfflineRecovery(sanitizedCity);
+        if (recovered) {
+          setPlace(recovered.place);
+          setWeather(recovered.weather);
+          setFiveDayForecast(recovered.forecast);
+          setError('Modalità offline: dati dalla cache.');
+          setLoading(false);
+          return;
         }
       }
 

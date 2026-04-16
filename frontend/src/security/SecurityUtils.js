@@ -4,9 +4,9 @@ export function sanitizeInput(value) {
   }
   return value
     .trim()
-    .replace(/<[^>]*>/g, '')
-    .replace(/[^a-zA-ZÀ-ÿ0-9 ,\-']/g, '')
-    .replace(/\s{2,}/g, ' ');
+    .replaceAll(/<[^>]*>/g, '')
+    .replaceAll(/[^a-zA-ZÀ-ÿ0-9 ,\-']/g, '')
+    .replaceAll(/\s{2,}/g, ' ');
 }
 
 export function isValidCityName(value) {
@@ -18,7 +18,7 @@ export function sanitizeHeaders(headers = {}) {
   const safeHeaders = {};
   Object.entries(headers).forEach(([key, value]) => {
     if (typeof value === 'string') {
-      safeHeaders[key] = value.replace(/[\r\n]/g, '');
+      safeHeaders[key] = value.replaceAll(/[\r\n]/g, '');
     }
   });
   return safeHeaders;
@@ -27,16 +27,16 @@ export function sanitizeHeaders(headers = {}) {
 const CONSENT_KEY = 'weather_app_geolocation_consent';
 
 export function requestGeolocationConsent() {
-  const granted = window.confirm(
+  const granted = globalThis.confirm(
     'Vuoi consentire l\'utilizzo della geolocalizzazione per ottenere previsioni meteo più accurate?'
   );
-  window.localStorage.setItem(CONSENT_KEY, JSON.stringify({ granted, timestamp: Date.now() }));
+  globalThis.localStorage.setItem(CONSENT_KEY, JSON.stringify({ granted, timestamp: Date.now() }));
   return granted;
 }
 
 export function hasGeolocationConsent() {
   try {
-    const stored = window.localStorage.getItem(CONSENT_KEY);
+    const stored = globalThis.localStorage.getItem(CONSENT_KEY);
     if (!stored) {
       return false;
     }

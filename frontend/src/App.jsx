@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
-import Home from './component/Home';
+import HomeContainer from './containers/HomeContainer';
+import ForecastContainer from './containers/ForecastContainer';
 import ErrorBoundary from './component/ErrorBoundary';
-import Forecast from './component/ForecastPage';
 import About from './component/AboutPage';
 
 function App() {
@@ -16,8 +16,8 @@ function App() {
 
         <main style={{ padding: '16px' }}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/forecast" element={<Forecast />} />
+            <Route path="/" element={<HomeContainer />} />
+            <Route path="/forecast" element={<ForecastContainer />} />
             <Route path="/about" element={<About />} />
           </Routes>
         </main>

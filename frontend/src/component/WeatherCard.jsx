@@ -18,19 +18,19 @@ function WeatherCard({ place, weather }) {
       </h2>
       <div className="grid grid-3">
         <div>
-          <p><span className="weather-icon">🌡️</span><strong>Temperatura:</strong> {current.temperature !== undefined ? `${current.temperature} °C` : 'N/A'}</p>
+          <p><span className="weather-icon">🌡️</span><strong>Temperatura:</strong> {current.temperature ? `${current.temperature} °C` : 'N/A'}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💨</span><strong>Vento:</strong> {currentWindSpeed !== undefined ? `${currentWindSpeed} km/h` : 'N/A'}</p>
+          <p><span className="weather-icon">💨</span><strong>Vento:</strong> {currentWindSpeed ? `${currentWindSpeed} km/h` : 'N/A'}</p>
         </div>
         <div>
-          <p><span className="weather-icon">🧭</span><strong>Direzione:</strong> {current.winddirection !== undefined ? `${current.winddirection}°` : 'N/A'}</p>
+          <p><span className="weather-icon">🧭</span><strong>Direzione:</strong> {current.winddirection || current.winddirection === 0 ? `${current.winddirection}°` : 'N/A'}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💧</span><strong>Precipitazione:</strong> {currentPrecipitation !== undefined ? `${currentPrecipitation} mm` : 'N/A'}</p>
+          <p><span className="weather-icon">💧</span><strong>Precipitazione:</strong> {currentPrecipitation || currentPrecipitation === 0 ? `${currentPrecipitation} mm` : 'N/A'}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💦</span><strong>Umidità:</strong> {currentHumidity !== undefined ? `${currentHumidity}%` : 'N/A'}</p>
+          <p><span className="weather-icon">💦</span><strong>Umidità:</strong> {currentHumidity ? `${currentHumidity}%` : 'N/A'}</p>
         </div>
       </div>
       <p><span className="weather-icon">🕒</span><strong>Ora rilevazione:</strong> {current.time || 'N/A'}</p>
@@ -51,6 +51,12 @@ WeatherCard.propTypes = {
       windspeed: PropTypes.number,
       winddirection: PropTypes.number,
       time: PropTypes.string,
+    }),
+    hourly: PropTypes.shape({
+      time: PropTypes.arrayOf(PropTypes.string),
+      precipitation: PropTypes.arrayOf(PropTypes.number),
+      relative_humidity_2m: PropTypes.arrayOf(PropTypes.number),
+      wind_speed_10m: PropTypes.arrayOf(PropTypes.number),
     }),
   }),
 };

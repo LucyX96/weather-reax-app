@@ -4,7 +4,7 @@ function HourlyForecast({ weather }) {
   if (!weather?.hourly?.time || !weather?.hourly?.temperature_2m || !weather?.hourly?.precipitation) return null;
 
   const nowIndex = weather?.current_weather?.time ? weather.hourly.time.indexOf(weather.current_weather.time) : -1;
-  const start = nowIndex >= 0 ? nowIndex : 0;
+  const start = Math.max(nowIndex, 0);
   const times = weather.hourly.time.slice(start, start + 12);
   const temperatures = weather.hourly.temperature_2m.slice(start, start + 12);
   const precipitation = weather.hourly.precipitation.slice(start, start + 12);
@@ -35,8 +35,8 @@ function HourlyForecast({ weather }) {
             }}
           >
             <span>{time}</span>
-            <span>{temperatures[index] !== undefined ? `${temperatures[index]} °C` : 'N/A'}</span>
-            <span>{precipitation[index] !== undefined ? `${precipitation[index]} mm` : 'N/A'}</span>
+            <span>{temperatures[index] ?? 'N/A'} °C</span>
+            <span>{precipitation[index] ?? 'N/A'} mm</span>
           </div>
         ))}
       </div>
@@ -47,11 +47,14 @@ function HourlyForecast({ weather }) {
 HourlyForecast.propTypes = {
   weather: PropTypes.shape({
     hourly: PropTypes.shape({
-      time: PropTypes.arrayOf(PropTypes.string),
-      temperature_2m: PropTypes.arrayOf(PropTypes.number),
-      precipitation: PropTypes.arrayOf(PropTypes.number),
-    }),
-  }),
+      time: PropTypes.arrayOf(PropTypes.string).isRequired,
+      temperature_2m: PropTypes.arrayOf(PropTypes.number).isRequired,
+      precipitation: PropTypes.arrayOf(PropTypes.number).isRequired
+    }).isRequired,
+    current_weather: PropTypes.shape({
+      time: PropTypes.string.isRequired
+    })
+  }).isRequired
 };
 
 export default HourlyForecast;

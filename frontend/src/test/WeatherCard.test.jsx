@@ -1,8 +1,7 @@
-/* eslint-env vitest */
 import { render, screen } from '@testing-library/react';
-import WeatherCard from '../component/WeatherCard';
+import WeatherCard from '../component/presentational/WeatherCard';
 
-describe('WeatherCard', () => {
+describe('WeatherCard (Presentational)', () => {
   it('non renderizza se place mancante o current_weather mancante', () => {
     const { container } = render(<WeatherCard place={null} weather={null} />);
     expect(container).toBeEmptyDOMElement();

@@ -1,8 +1,7 @@
-/* eslint-env vitest */
 import { render, screen } from '@testing-library/react';
-import HourlyForecast from '../component/HourlyForecast';
+import HourlyForecast from '../component/presentational/HourlyForecast';
 
-describe('HourlyForecast', () => {
+describe('HourlyForecast (Presentational)', () => {
   it('non renderizza senza dati hourly', () => {
     const { container } = render(<HourlyForecast weather={{}} />);
     expect(container).toBeEmptyDOMElement();
@@ -23,3 +22,4 @@ describe('HourlyForecast', () => {
     expect(screen.getByText('0 mm')).toBeInTheDocument();
   });
 });
+

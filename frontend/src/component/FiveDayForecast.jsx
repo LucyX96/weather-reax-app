@@ -21,8 +21,8 @@ function FiveDayForecast({ forecast }) {
             }}
           >
             <span style={{ fontWeight: "bold" }}>{new Date(day.date).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
-            <span>Min: {day.min !== undefined ? `${day.min}°C` : 'N/A'}</span>
-            <span>Max: {day.max !== undefined ? `${day.max}°C` : 'N/A'}</span>
+            <span>Min: {day.min ?? 'N/A'}°C</span>
+            <span>Max: {day.max ?? 'N/A'}°C</span>
           </div>
         ))}
       </div>

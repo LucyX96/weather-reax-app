@@ -1,4 +1,3 @@
-/* eslint-env vitest */
 import { saveCache, readCache, clearCache, clearAllCache } from '../services/CacheService';
 
 describe('CacheService', () => {
