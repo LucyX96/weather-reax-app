@@ -1,16 +1,13 @@
 import PropTypes from "prop-types";
 import { formatOrNA } from '../../services/helpers';
+import { getCurrentWeatherMetrics } from '../../services/weatherMappers';
 
 function WeatherCard({ place, weather }) {
-  if (!place || !weather?.current_weather) return null;
+  const metrics = getCurrentWeatherMetrics(weather);
 
-  const current = weather.current_weather;
-  // Extract hour from current.time (e.g., "2026-03-30T16:45" -> "2026-03-30T16:00")
-  const currentHour = current.time ? current.time.substring(0, 13) + ':00' : undefined;
-  const currentIndex = currentHour && weather?.hourly?.time ? weather.hourly.time.indexOf(currentHour) : -1;
-  const currentPrecipitation = currentIndex >= 0 ? weather.hourly.precipitation?.[currentIndex] : undefined;
-  const currentHumidity = currentIndex >= 0 ? weather.hourly.relative_humidity_2m?.[currentIndex] : undefined;
-  const currentWindSpeed = currentIndex >= 0 ? weather.hourly.wind_speed_10m?.[currentIndex] : undefined;
+  if (!place || !metrics) return null;
+
+  const { current, windSpeed, precipitation, humidity } = metrics;
 
   return (
     <div className="card">
@@ -22,16 +19,16 @@ function WeatherCard({ place, weather }) {
           <p><span className="weather-icon">🌡️</span><strong>Temperatura:</strong> {formatOrNA(current.temperature, '°C')}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💨</span><strong>Vento:</strong> {formatOrNA(currentWindSpeed, 'km/h')}</p>
+          <p><span className="weather-icon">💨</span><strong>Vento:</strong> {formatOrNA(windSpeed, 'km/h')}</p>
         </div>
         <div>
-          <p><span className="weather-icon">🧭</span><strong>Direzione:</strong> {formatOrNA(current.winddirection, '°')}</p>
+          <p><span className="weather-icon">🧭</span><strong>Direzione:</strong> {current.winddirection == null ? 'N/A' : `${current.winddirection}°`}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💧</span><strong>Precipitazione:</strong> {formatOrNA(currentPrecipitation, 'mm')}</p>
+          <p><span className="weather-icon">💧</span><strong>Precipitazione:</strong> {formatOrNA(precipitation, 'mm')}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💦</span><strong>Umidità:</strong> {formatOrNA(currentHumidity, '%')}</p>
+          <p><span className="weather-icon">💦</span><strong>Umidità:</strong> {humidity == null ? 'N/A' : `${humidity}%`}</p>
         </div>
       </div>
       <p><span className="weather-icon">🕒</span><strong>Ora rilevazione:</strong> {current.time || 'N/A'}</p>

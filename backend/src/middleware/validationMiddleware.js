@@ -1,5 +1,6 @@
 const { query, validationResult } = require('express-validator');
-const { validateCoordinates } = require('../utils/validators');
+const { validateLatitudeInput, validateLongitudeInput } = require('../utils/validators');
+const { ErrorHandler } = require('../errors');
 
 /**
  * Validation middleware for geocoding requests
@@ -32,12 +33,12 @@ const validateForecast = [
   query('latitude')
     .exists()
     .withMessage('latitude è obbligatorio')
-    .custom(validateCoordinates)
+    .custom(validateLatitudeInput)
     .withMessage('latitude deve essere numero o lista di numeri'),
   query('longitude')
     .exists()
     .withMessage('longitude è obbligatorio')
-    .custom(validateCoordinates)
+    .custom(validateLongitudeInput)
     .withMessage('longitude deve essere numero o lista di numeri'),
 ];
 
@@ -47,10 +48,9 @@ const validateForecast = [
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({
-      error: 'Dati di input non validi',
-      details: errors.array(),
-    });
+    const validationError = ErrorHandler.createValidationError('Dati di input non validi');
+    validationError.details = errors.array();
+    return next(validationError);
   }
   next();
 };

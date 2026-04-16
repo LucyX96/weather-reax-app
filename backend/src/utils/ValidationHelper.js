@@ -91,24 +91,54 @@ class ValidationHelper {
   }
 
   /**
-   * Validates comma-separated coordinates
+   * Validates a single coordinate or a comma-separated coordinate list
    */
-  static validateCoordinates(value) {
-    const coords = String(value)
+  static validateCoordinateList(value, fieldName, min, max) {
+    const coordinates = String(value)
       .split(',')
       .map((c) => c.trim());
 
-    if (coords.length !== 2) {
+    if (coordinates.length === 0 || coordinates.some((coordinate) => coordinate.length === 0)) {
+      throw new ValidationError(`${fieldName} non valido`, fieldName);
+    }
+
+    return coordinates.map((coordinate) =>
+      this.validateNumberRange(coordinate, fieldName, min, max)
+    );
+  }
+
+  /**
+   * Validates latitude as a single value or list
+   */
+  static validateLatitudeInput(value) {
+    return this.validateCoordinateList(value, 'latitude', -90, 90);
+  }
+
+  /**
+   * Validates longitude as a single value or list
+   */
+  static validateLongitudeInput(value) {
+    return this.validateCoordinateList(value, 'longitude', -180, 180);
+  }
+
+  /**
+   * Backward compatible coordinate pair validator
+   */
+  static validateCoordinates(value) {
+    const [latitude, longitude] = String(value)
+      .split(',')
+      .map((coordinate) => coordinate.trim());
+
+    if (!latitude || !longitude) {
       throw new ValidationError(
         'Coordinate devono essere 2 valori separati da virgola',
         'coordinates'
       );
     }
 
-    const [lat, lon] = coords;
     return {
-      latitude: this.validateLatitude(lat),
-      longitude: this.validateLongitude(lon),
+      latitude: this.validateLatitude(latitude),
+      longitude: this.validateLongitude(longitude),
     };
   }
 

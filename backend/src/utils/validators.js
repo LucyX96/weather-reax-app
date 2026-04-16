@@ -41,9 +41,29 @@ function validateCoordinates(value) {
   }
 }
 
+function validateLatitudeInput(value) {
+  try {
+    ValidationHelper.validateLatitudeInput(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function validateLongitudeInput(value) {
+  try {
+    ValidationHelper.validateLongitudeInput(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 module.exports = {
   validateLatitude,
   validateLongitude,
   validateCoordinates,
+  validateLatitudeInput,
+  validateLongitudeInput,
   ValidationHelper, // Export helper for direct use
 };

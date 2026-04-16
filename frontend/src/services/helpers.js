@@ -40,36 +40,23 @@ export const sanitize = (value) => {
   return value
     .trim()
     .replaceAll(/<[^>]*>/g, '')
-    .replaceAll(/[^a-zA-ZÀ-ÿ0-9 ,\\-']/g, '')
-    .replaceAll(/\\s{2,}/g, ' ');
+    .replaceAll(/[^a-zA-ZÀ-ÿ0-9 ,'-]/g, '')
+    .replaceAll(/\s{2,}/g, ' ');
 };
 
 export const sanitizeHeaders = (headers = {}) => {
   const safeHeaders = {};
   Object.entries(headers).forEach(([key, value]) => {
     if (typeof value === 'string') {
-      safeHeaders[key] = value.replaceAll(/[\\r\\n]/g, '');
+      safeHeaders[key] = value.replaceAll(/[\r\n]/g, '');
     }
   });
   return safeHeaders;
 };
 
-export const handleClientError = (err) => {
-  if (!err) return new Error('Errore sconosciuto della rete');
-
-  if (err.response) {
-    const message = err.response.data?.error || err.response.statusText || 'Errore API';
-    const status = err.response.status;
-    const error = new Error(message);
-    error.status = status;
-    return error;
-  }
-
-  if (err.request) {
-    const error = new Error('Nessuna risposta dal server. Controlla la connessione.');
-    error.status = 503;
-    return error;
-  }
-
-  return err;
-};
+export function parseCommaSeparatedValues(value) {
+  return String(value || '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}

@@ -1,15 +1,14 @@
 import PropTypes from "prop-types";
+import { getHourlyForecastSlice } from '../../services/weatherMappers';
 
 function HourlyForecast({ weather }) {
-  if (!weather?.hourly?.time || !weather?.hourly?.temperature_2m || !weather?.hourly?.precipitation) return null;
+  const hourlyForecast = getHourlyForecastSlice(weather);
 
-  const nowIndex = weather?.current_weather?.time ? weather.hourly.time.indexOf(weather.current_weather.time) : -1;
-  const start = Math.max(nowIndex, 0);
-  const times = weather.hourly.time.slice(start, start + 12);
-  const temperatures = weather.hourly.temperature_2m.slice(start, start + 12);
-  const precipitation = weather.hourly.precipitation.slice(start, start + 12);
+  if (!weather?.hourly?.time || !weather?.hourly?.temperature_2m || !weather?.hourly?.precipitation) {
+    return null;
+  }
 
-  if (times.length === 0 || temperatures.length === 0 || precipitation.length === 0) {
+  if (hourlyForecast.length === 0) {
     return (
       <div style={{ padding: "20px", border: "1px solid #ddd", borderRadius: "12px" }}>
         <p>Nessuna previsione oraria disponibile.</p>
@@ -22,9 +21,9 @@ function HourlyForecast({ weather }) {
       <h3>Previsioni orarie</h3>
 
       <div className="grid">
-        {times.map((time, index) => (
+        {hourlyForecast.map((entry, index) => (
           <div
-            key={time}
+            key={entry.time}
             style={{
               display: "grid",
               gridTemplateColumns: "1.5fr 1fr 1fr",
@@ -34,9 +33,9 @@ function HourlyForecast({ weather }) {
               borderRadius: "4px"
             }}
           >
-            <span>{time}</span>
-            <span>{temperatures[index] === undefined ? 'N/A' : `${temperatures[index]} °C`}</span>
-            <span>{precipitation[index] === undefined ? 'N/A' : `${precipitation[index]} mm`}</span>
+            <span>{entry.time}</span>
+            <span>{entry.temperatureLabel}</span>
+            <span>{entry.precipitationLabel}</span>
           </div>
         ))}
       </div>

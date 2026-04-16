@@ -106,6 +106,10 @@ class ErrorHandler {
   static isOperationalError(error) {
     return error instanceof AppError && error.isOperational;
   }
+
+  static createValidationError(message, field = null) {
+    return new ValidationError(message, field);
+  }
 }
 
 module.exports = ErrorHandler;

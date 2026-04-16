@@ -1,5 +1,4 @@
-const { ForecastInputDTO, ForecastOutputDTO } = require('../models/dto');
-const ValidationHelper = require('../utils/ValidationHelper');
+const { ForecastInputDTO } = require('../models/dto');
 
 /**
  * ForecastService
@@ -19,38 +18,24 @@ class ForecastService {
    * @returns {Promise<ForecastOutputDTO>}
    */
   async getForecast(latitude, longitude, params = {}) {
-    try {
-      // Validate coordinates using helper
-      const validLat = ValidationHelper.validateLatitude(latitude);
-      const validLon = ValidationHelper.validateLongitude(longitude);
+    const input = ForecastInputDTO.fromInput({
+      latitude,
+      longitude,
+      ...params,
+    });
+    input.validate();
 
-      // Validate input
-      const input = ForecastInputDTO.fromInput({
-        latitude: validLat,
-        longitude: validLon,
-        ...params,
-      });
-      input.validate();
+    const forecastParams = input.getForecastParams();
+    const { latitude: requestLat, longitude: requestLon, ...apiParams } = forecastParams;
 
-      // Get forecast parameters
-      const forecastParams = input.getForecastParams();
-      const { latitude: requestLat, longitude: requestLon, ...apiParams } = forecastParams;
+    const forecastData = await this.weatherRepository.fetchForecastData(
+      requestLat,
+      requestLon,
+      apiParams
+    );
+    forecastData.validate();
 
-      // Fetch from repository
-      const forecastData = await this.weatherRepository.fetchForecastData(
-        requestLat,
-        requestLon,
-        apiParams
-      );
-
-      // Validate output
-      forecastData.validate();
-
-      return forecastData;
-    } catch (error) {
-      // Error handling is centralized - just rethrow
-      throw error;
-    }
+    return forecastData;
   }
 
   /**

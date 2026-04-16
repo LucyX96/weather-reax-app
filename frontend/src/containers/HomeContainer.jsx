@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useWeather from "../component/useWeather";
 import Home from "../component/Home";
+import { parseCommaSeparatedValues } from '../services/helpers';
 
 /**
  * HomeContainer
@@ -21,7 +22,7 @@ function HomeContainer() {
   const [citiesInput, setCitiesInput] = useState("");
 
   const handleMultipleSearch = () => {
-    const cities = citiesInput.split(',').map(c => c.trim()).filter(Boolean);
+    const cities = parseCommaSeparatedValues(citiesInput);
     if (cities.length > 0) {
       searchMultipleCities(cities);
     }

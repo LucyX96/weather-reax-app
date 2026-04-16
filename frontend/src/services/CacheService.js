@@ -5,6 +5,20 @@ function buildKey(key) {
   return `${CACHE_PREFIX}${key}`;
 }
 
+function isValidCacheItem(item) {
+  return Boolean(
+    item &&
+      typeof item === 'object' &&
+      Object.hasOwn(item, 'data') &&
+      typeof item.createdAt === 'number' &&
+      typeof item.ttl === 'number'
+  );
+}
+
+function isExpired(item) {
+  return Date.now() - item.createdAt > item.ttl;
+}
+
 export async function saveCache(key, data, ttl = DEFAULT_TTL) {
   try {
     const item = {
@@ -24,15 +38,19 @@ export async function readCache(key) {
     if (!raw) {
       return null;
     }
+
     const item = JSON.parse(raw);
-    if (!item || typeof item !== 'object' || !item.createdAt || !item.ttl) {
+
+    if (!isValidCacheItem(item)) {
       await clearCache(key);
       return null;
     }
-    if (Date.now() - item.createdAt > item.ttl) {
+
+    if (isExpired(item)) {
       await clearCache(key);
       return null;
     }
+
     return item.data;
   } catch (error) {
     console.warn('CacheService readCache fallita:', error);

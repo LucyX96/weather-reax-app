@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
+import { isValidCityName, sanitizeInput } from '../../security/SecurityUtils';
 
 function SearchBar({ onSearch, loading }) {
   const [city, setCity] = useState("");
@@ -7,13 +8,13 @@ function SearchBar({ onSearch, loading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const trimmedCity = city.trim();
-    if (!trimmedCity) return;
-    // Validazione semplice: solo lettere, spazi, trattini, apostrofi
-    if (!/^[a-zA-Z\s\-']+$/.test(trimmedCity)) {
+    const sanitizedCity = sanitizeInput(city);
+    if (!sanitizedCity) return;
+    if (sanitizedCity !== trimmedCity || !isValidCityName(sanitizedCity)) {
       alert("Inserisci una città valida (solo lettere, spazi, trattini o apostrofi).");
       return;
     }
-    onSearch(trimmedCity);
+    onSearch(sanitizedCity);
   };
 
   return (

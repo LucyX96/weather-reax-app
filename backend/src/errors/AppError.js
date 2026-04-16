@@ -19,12 +19,22 @@ class AppError extends Error {
    * Convert error to JSON response format
    */
   toJSON() {
-    return {
+    const payload = {
       error: this.message,
       code: this.errorCode,
       statusCode: this.statusCode,
       timestamp: this.timestamp,
     };
+
+    if (this.field) {
+      payload.field = this.field;
+    }
+
+    if (this.details) {
+      payload.details = this.details;
+    }
+
+    return payload;
   }
 }
 

@@ -1,6 +1,6 @@
 const { buildExternalUrl, buildFetchOptions } = require('../utils/apiClient');
 const { GeocodeOutputDTO, ForecastOutputDTO } = require('../models/dto');
-const { ErrorHandler, NotFoundError, TimeoutError } = require('../errors');
+const { ErrorHandler, NotFoundError } = require('../errors');
 
 /**
  * WeatherRepository
@@ -12,6 +12,35 @@ class WeatherRepository {
     this.weatherApiKey = weatherApiKey;
     this.weatherApiUrl = weatherApiUrl;
     this.geocodeUrl = geocodeUrl;
+  }
+
+  async executeRequest(url, context, timeout, responseMapper) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, buildFetchOptions(controller.signal, this.weatherApiKey));
+      const data = await this.parseResponse(response, context);
+      return responseMapper(data);
+    } catch (error) {
+      throw ErrorHandler.handleFetchError(error, context);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  async parseResponse(response, context) {
+    if (response.ok) {
+      return response.json();
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    const defaultMessage = `Errore API ${context}: ${response.status}`;
+    throw ErrorHandler.handleExternalServiceError(
+      response.status,
+      errorData?.reason || errorData?.error || defaultMessage,
+      context
+    );
   }
 
   /**
@@ -28,33 +57,13 @@ class WeatherRepository {
       format: 'json',
     });
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-      const response = await fetch(url, buildFetchOptions(controller.signal, this.weatherApiKey));
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw ErrorHandler.handleExternalServiceError(
-          response.status,
-          `Errore API geocoding: ${response.status}`,
-          'geocoding'
-        );
-      }
-
-      const data = await response.json();
-
+    return this.executeRequest(url, 'geocoding', timeout, (data) => {
       if (!data?.results || data.results.length === 0) {
         throw new NotFoundError('Città non trovata', 'city');
       }
 
-      const place = data.results[0];
-      return GeocodeOutputDTO.fromApiResponse(place);
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw ErrorHandler.handleFetchError(error, 'geocoding');
-    }
+      return GeocodeOutputDTO.fromApiResponse(data.results[0]);
+    });
   }
 
   /**
@@ -73,29 +82,9 @@ class WeatherRepository {
     };
 
     const url = buildExternalUrl(this.weatherApiUrl, '/v1/forecast', requestParams);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-      const response = await fetch(url, buildFetchOptions(controller.signal, this.weatherApiKey));
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw ErrorHandler.handleExternalServiceError(
-          response.status,
-          errData?.reason || `Errore API forecast: ${response.status}`,
-          'forecast'
-        );
-      }
-
-      const data = await response.json();
-      return ForecastOutputDTO.fromApiResponse(data);
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw ErrorHandler.handleFetchError(error, 'forecast');
-    }
+    return this.executeRequest(url, 'forecast', timeout, (data) =>
+      ForecastOutputDTO.fromApiResponse(data)
+    );
   }
 }
 

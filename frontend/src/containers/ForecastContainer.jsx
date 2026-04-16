@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import ForecastPage from '../component/ForecastPage';
+import { getForecastByParams } from '../services/weatherApiService';
+import { normalizeError } from '../services/errorHandling';
 
 /**
  * ForecastContainer
@@ -22,21 +24,12 @@ function ForecastContainer() {
       setError('');
       setData(null);
 
-      const url = new URL('http://localhost:3001/v1/forecast');
-      Object.entries(params).forEach(([k, v]) => {
-        if (v) url.searchParams.set(k, v);
-      });
-
-      const response = await fetch(url.toString());
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Errore di forecast');
-      }
-
+      const result = await getForecastByParams(
+        Object.fromEntries(Object.entries(params).filter(([, value]) => value))
+      );
       setData(result);
     } catch (err) {
-      setError(err.message);
+      setError(normalizeError(err).message);
     } finally {
       setLoading(false);
     }
