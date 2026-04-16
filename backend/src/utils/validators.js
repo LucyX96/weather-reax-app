@@ -1,36 +1,49 @@
+const ValidationHelper = require('./ValidationHelper');
+
 /**
- * Validator utilities
+ * Validator utilities - Wrapper for backward compatibility
+ * Delegates to ValidationHelper following DRY principle
  */
 
 /**
  * Validates latitude value
  */
 function validateLatitude(value) {
-  const lat = Number.parseFloat(value);
-  if (Number.isNaN(lat)) return false;
-  return lat >= -90 && lat <= 90;
+  try {
+    ValidationHelper.validateLatitude(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Validates longitude value
  */
 function validateLongitude(value) {
-  const lon = Number.parseFloat(value);
-  if (Number.isNaN(lon)) return false;
-  return lon >= -180 && lon <= 180;
+  try {
+    ValidationHelper.validateLongitude(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Validates coordinate string (single or comma-separated)
  */
 function validateCoordinates(value) {
-  if (!value) return false;
-  const coords = String(value).split(',');
-  return coords.every((c) => !Number.isNaN(Number.parseFloat(c)));
+  try {
+    ValidationHelper.validateCoordinates(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 module.exports = {
   validateLatitude,
   validateLongitude,
   validateCoordinates,
+  ValidationHelper, // Export helper for direct use
 };

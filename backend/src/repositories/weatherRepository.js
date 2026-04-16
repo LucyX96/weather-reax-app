@@ -1,9 +1,11 @@
 const { buildExternalUrl, buildFetchOptions } = require('../utils/apiClient');
 const { GeocodeOutputDTO, ForecastOutputDTO } = require('../models/dto');
+const { ErrorHandler, NotFoundError, TimeoutError } = require('../errors');
 
 /**
  * WeatherRepository
- * Handles all external API calls for weather and geocoding data
+ * Handles all external API calls following Single Responsibility principle
+ * Delegates error handling to ErrorHandler
  */
 class WeatherRepository {
   constructor(weatherApiKey, weatherApiUrl, geocodeUrl) {
@@ -34,23 +36,24 @@ class WeatherRepository {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`Errore API geocoding: ${response.status}`);
+        throw ErrorHandler.handleExternalServiceError(
+          response.status,
+          `Errore API geocoding: ${response.status}`,
+          'geocoding'
+        );
       }
 
       const data = await response.json();
 
       if (!data?.results || data.results.length === 0) {
-        return null; // Not found
+        throw new NotFoundError('Città non trovata', 'city');
       }
 
       const place = data.results[0];
       return GeocodeOutputDTO.fromApiResponse(place);
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        throw new Error('Timeout nella richiesta geocoding');
-      }
-      throw error;
+      throw ErrorHandler.handleFetchError(error, 'geocoding');
     }
   }
 
@@ -80,17 +83,18 @@ class WeatherRepository {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.reason || `Errore API forecast: ${response.status}`);
+        throw ErrorHandler.handleExternalServiceError(
+          response.status,
+          errData?.reason || `Errore API forecast: ${response.status}`,
+          'forecast'
+        );
       }
 
       const data = await response.json();
       return ForecastOutputDTO.fromApiResponse(data);
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        throw new Error('Timeout nella richiesta forecast');
-      }
-      throw error;
+      throw ErrorHandler.handleFetchError(error, 'forecast');
     }
   }
 }

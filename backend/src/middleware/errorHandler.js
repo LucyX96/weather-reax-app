@@ -1,31 +1,17 @@
+const { ErrorHandler } = require('../errors');
+
 /**
  * Global error handler middleware
+ * Centralizes error handling following Single Responsibility principle
  * Should be used as the last middleware in the app
  */
 function errorHandler(err, req, res, next) {
-  console.error('Error:', err);
+  // Log all errors for debugging
+  ErrorHandler.logError(err, `${req.method} ${req.path}`);
 
-  // Handle DTO validation errors
-  if (err.message?.includes('è obbligatorio')) {
-    return res.status(400).json({ error: err.message });
-  }
-
-  if (err.message?.includes('non valido')) {
-    return res.status(400).json({ error: err.message });
-  }
-
-  // Handle timeout errors
-  if (err.message?.includes('Timeout')) {
-    return res.status(504).json({ error: err.message });
-  }
-
-  // Handle not found errors
-  if (err.message?.includes('non trovata')) {
-    return res.status(404).json({ error: err.message });
-  }
-
-  // Handle other errors
-  res.status(500).json({ error: 'Errore interno del server' });
+  // Format and send response
+  const { statusCode, body } = ErrorHandler.formatErrorResponse(err);
+  res.status(statusCode).json(body);
 }
 
 module.exports = {

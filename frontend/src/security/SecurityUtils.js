@@ -1,12 +1,7 @@
+import { sanitize as _sanitize, sanitizeHeaders as _sanitizeHeaders } from '../services/helpers';
+
 export function sanitizeInput(value) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-  return value
-    .trim()
-    .replaceAll(/<[^>]*>/g, '')
-    .replaceAll(/[^a-zA-ZÀ-ÿ0-9 ,\-']/g, '')
-    .replaceAll(/\s{2,}/g, ' ');
+  return _sanitize(value);
 }
 
 export function isValidCityName(value) {
@@ -15,13 +10,7 @@ export function isValidCityName(value) {
 }
 
 export function sanitizeHeaders(headers = {}) {
-  const safeHeaders = {};
-  Object.entries(headers).forEach(([key, value]) => {
-    if (typeof value === 'string') {
-      safeHeaders[key] = value.replaceAll(/[\r\n]/g, '');
-    }
-  });
-  return safeHeaders;
+  return _sanitizeHeaders(headers);
 }
 
 const CONSENT_KEY = 'weather_app_geolocation_consent';

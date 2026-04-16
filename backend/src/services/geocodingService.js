@@ -1,8 +1,11 @@
 const { GeocodeInputDTO, GeocodeOutputDTO } = require('../models/dto');
+const { ErrorHandler } = require('../errors');
+const ValidationHelper = require('../utils/ValidationHelper');
 
 /**
  * GeocodingService
- * Business logic for geocoding operations
+ * Business logic for geocoding operations following Single Responsibility
+ * Delegates validation to ValidationHelper and error handling to ErrorHandler
  */
 class GeocodingService {
   constructor(weatherRepository) {
@@ -15,21 +18,25 @@ class GeocodingService {
    * @returns {Promise<GeocodeOutputDTO>}
    */
   async geocodeCity(city) {
-    // Validate input
-    const input = GeocodeInputDTO.fromInput({ q: city });
-    input.validate();
+    try {
+      // Validate input using helper
+      const validatedCity = ValidationHelper.validateCity(city);
 
-    // Fetch from repository
-    const geocodeData = await this.weatherRepository.fetchGeocodeData(input.q);
+      // Create DTO for validation
+      const input = GeocodeInputDTO.fromInput({ q: validatedCity });
+      input.validate();
 
-    if (!geocodeData) {
-      throw new Error('Città non trovata');
+      // Fetch from repository
+      const geocodeData = await this.weatherRepository.fetchGeocodeData(validatedCity);
+
+      // Validate output
+      geocodeData.validate();
+
+      return geocodeData;
+    } catch (error) {
+      // Error handling is centralized - just rethrow
+      throw error;
     }
-
-    // Validate output
-    geocodeData.validate();
-
-    return geocodeData;
   }
 }
 

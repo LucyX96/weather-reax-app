@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { formatOrNA } from '../../services/helpers';
 
 function WeatherCard({ place, weather }) {
   if (!place || !weather?.current_weather) return null;
@@ -18,19 +19,19 @@ function WeatherCard({ place, weather }) {
       </h2>
       <div className="grid grid-3">
         <div>
-          <p><span className="weather-icon">🌡️</span><strong>Temperatura:</strong> {current.temperature == null ? 'N/A' : `${current.temperature} °C`}</p>
+          <p><span className="weather-icon">🌡️</span><strong>Temperatura:</strong> {formatOrNA(current.temperature, '°C')}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💨</span><strong>Vento:</strong> {currentWindSpeed == null ? 'N/A' : `${currentWindSpeed} km/h`}</p>
+          <p><span className="weather-icon">💨</span><strong>Vento:</strong> {formatOrNA(currentWindSpeed, 'km/h')}</p>
         </div>
         <div>
-          <p><span className="weather-icon">🧭</span><strong>Direzione:</strong> {current.winddirection == null ? 'N/A' : `${current.winddirection}°`}</p>
+          <p><span className="weather-icon">🧭</span><strong>Direzione:</strong> {formatOrNA(current.winddirection, '°')}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💧</span><strong>Precipitazione:</strong> {currentPrecipitation == null ? 'N/A' : `${currentPrecipitation} mm`}</p>
+          <p><span className="weather-icon">💧</span><strong>Precipitazione:</strong> {formatOrNA(currentPrecipitation, 'mm')}</p>
         </div>
         <div>
-          <p><span className="weather-icon">💦</span><strong>Umidità:</strong> {currentHumidity == null ? 'N/A' : `${currentHumidity}%`}</p>
+          <p><span className="weather-icon">💦</span><strong>Umidità:</strong> {formatOrNA(currentHumidity, '%')}</p>
         </div>
       </div>
       <p><span className="weather-icon">🕒</span><strong>Ora rilevazione:</strong> {current.time || 'N/A'}</p>

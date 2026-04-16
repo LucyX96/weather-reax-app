@@ -1,8 +1,10 @@
 const { ForecastInputDTO, ForecastOutputDTO } = require('../models/dto');
+const ValidationHelper = require('../utils/ValidationHelper');
 
 /**
  * ForecastService
- * Business logic for forecast operations
+ * Business logic for forecast operations following Single Responsibility
+ * Delegates validation to ValidationHelper
  */
 class ForecastService {
   constructor(weatherRepository) {
@@ -17,29 +19,38 @@ class ForecastService {
    * @returns {Promise<ForecastOutputDTO>}
    */
   async getForecast(latitude, longitude, params = {}) {
-    // Validate input
-    const input = ForecastInputDTO.fromInput({
-      latitude,
-      longitude,
-      ...params,
-    });
-    input.validate();
+    try {
+      // Validate coordinates using helper
+      const validLat = ValidationHelper.validateLatitude(latitude);
+      const validLon = ValidationHelper.validateLongitude(longitude);
 
-    // Get forecast parameters
-    const forecastParams = input.getForecastParams();
-    const { latitude: requestLat, longitude: requestLon, ...apiParams } = forecastParams;
+      // Validate input
+      const input = ForecastInputDTO.fromInput({
+        latitude: validLat,
+        longitude: validLon,
+        ...params,
+      });
+      input.validate();
 
-    // Fetch from repository
-    const forecastData = await this.weatherRepository.fetchForecastData(
-      requestLat,
-      requestLon,
-      apiParams
-    );
+      // Get forecast parameters
+      const forecastParams = input.getForecastParams();
+      const { latitude: requestLat, longitude: requestLon, ...apiParams } = forecastParams;
 
-    // Validate output
-    forecastData.validate();
+      // Fetch from repository
+      const forecastData = await this.weatherRepository.fetchForecastData(
+        requestLat,
+        requestLon,
+        apiParams
+      );
 
-    return forecastData;
+      // Validate output
+      forecastData.validate();
+
+      return forecastData;
+    } catch (error) {
+      // Error handling is centralized - just rethrow
+      throw error;
+    }
   }
 
   /**
